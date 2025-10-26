@@ -6,7 +6,7 @@ from uuid import UUID
 
 from .database import get_db
 from .websocket_manager import manager
-from .routes import polls, votes, likes, auth
+from .routes import polls, votes, likes, auth, comments
 from .services.poll_service import get_poll
 
 app = FastAPI(title="QuickPoll API", version="1.0.0")
@@ -25,6 +25,7 @@ app.include_router(auth.router)
 app.include_router(polls.router)
 app.include_router(votes.router)
 app.include_router(likes.router)
+app.include_router(comments.router)
 
 @app.get("/")
 def read_root():

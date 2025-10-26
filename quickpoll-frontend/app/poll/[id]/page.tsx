@@ -7,6 +7,7 @@ import { LiveIndicator } from '@/components/LiveIndicator';
 import { LikeButton } from '@/components/LikeButton';
 import { VoteButtons } from '@/components/VoteButtons';
 import { LiveResults } from '@/components/LiveResults';
+import { CommentsSection } from '@/components/CommentsSection';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { votesApi } from '@/lib/api';
 import { getUserId } from '@/lib/utils';
@@ -94,6 +95,8 @@ export default function PollPage() {
           </div>
         </CardContent>
       </Card>
+
+      <CommentsSection pollId={pollId} />
     </div>
   );
 }

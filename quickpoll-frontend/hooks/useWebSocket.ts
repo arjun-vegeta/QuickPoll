@@ -76,6 +76,13 @@ export function useWebSocket(pollId: string) {
               setViewerCount(message.count || 0);
               break;
 
+            case 'comment_update':
+              // Notify comment section to add new comment
+              if (message.comment && (window as any).addCommentToSection) {
+                (window as any).addCommentToSection(message.comment);
+              }
+              break;
+
             case 'error':
               console.error('WebSocket error:', message.message);
               break;

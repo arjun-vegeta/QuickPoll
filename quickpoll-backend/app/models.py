@@ -33,10 +33,28 @@ class Poll(Base):
     options = relationship("PollOption", back_populates="poll", cascade="all, delete-orphan")
     votes = relationship("Vote", back_populates="poll", cascade="all, delete-orphan")
     likes = relationship("PollLike", back_populates="poll", cascade="all, delete-orphan")
+    comments = relationship("Comment", back_populates="poll", cascade="all, delete-orphan")
     
     __table_args__ = (
         Index('idx_polls_active', 'is_active', postgresql_where=(is_active == True)),
         Index('idx_polls_created', 'created_at'),
+    )
+
+class Comment(Base):
+    __tablename__ = "comments"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    poll_id = Column(UUID(as_uuid=True), ForeignKey("polls.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    username = Column(String(100), nullable=False)
+    comment_text = Column(Text, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    poll = relationship("Poll", back_populates="comments")
+    
+    __table_args__ = (
+        Index('idx_comments_poll', 'poll_id'),
+        Index('idx_comments_created', 'created_at'),
     )
 
 class PollOption(Base):

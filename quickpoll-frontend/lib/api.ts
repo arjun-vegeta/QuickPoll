@@ -85,4 +85,24 @@ export const usersApi = {
   },
 };
 
+export const commentsApi = {
+  getByPoll: async (pollId: string): Promise<any[]> => {
+    const response = await api.get(`/comments/poll/${pollId}`);
+    return response.data;
+  },
+
+  create: async (commentData: {
+    poll_id: string;
+    comment_text: string;
+    post_anonymously?: boolean;
+  }): Promise<any> => {
+    const response = await api.post("/comments/", commentData);
+    return response.data;
+  },
+
+  delete: async (commentId: string): Promise<void> => {
+    await api.delete(`/comments/${commentId}`);
+  },
+};
+
 export default api;

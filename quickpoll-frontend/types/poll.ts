@@ -28,8 +28,17 @@ export interface Like {
   user_id: string;
 }
 
+export interface Comment {
+  id: string;
+  poll_id: string;
+  user_id?: string;
+  username: string;
+  comment_text: string;
+  created_at: string;
+}
+
 export interface WebSocketMessage {
-  type: 'initial_data' | 'vote_update' | 'like_update' | 'viewer_count' | 'error';
+  type: 'initial_data' | 'vote_update' | 'like_update' | 'viewer_count' | 'comment_update' | 'error';
   poll?: Poll;
   poll_id?: string;
   option_id?: string;
@@ -38,5 +47,6 @@ export interface WebSocketMessage {
   total_likes?: number;
   count?: number;
   viewer_count?: number;
+  comment?: Comment;
   message?: string;
 }

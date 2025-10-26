@@ -25,3 +25,11 @@ async def send_poll_data(poll_id: UUID, poll_data: dict):
         "type": "poll_data",
         "data": poll_data
     })
+
+async def broadcast_comment_update(poll_id: UUID, comment_data: dict):
+    """Broadcast new comment to all connected clients"""
+    await manager.broadcast_to_poll(str(poll_id), {
+        "type": "comment_update",
+        "poll_id": str(poll_id),
+        "comment": comment_data
+    })

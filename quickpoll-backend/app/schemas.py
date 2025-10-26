@@ -87,3 +87,20 @@ class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     user: UserResponse
+
+# Comment schemas
+class CommentCreate(BaseModel):
+    poll_id: UUID
+    comment_text: str = Field(..., min_length=1, max_length=1000)
+    post_anonymously: bool = False
+
+class CommentResponse(BaseModel):
+    id: UUID
+    poll_id: UUID
+    user_id: Optional[UUID]
+    username: str
+    comment_text: str
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
