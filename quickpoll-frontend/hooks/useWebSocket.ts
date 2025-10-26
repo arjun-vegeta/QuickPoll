@@ -12,9 +12,17 @@ export function useWebSocket(pollId: string) {
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
   const reconnectAttemptsRef = useRef(0);
+  const isConnectingRef = useRef(false);
 
   const connect = useCallback(() => {
-    if (!pollId) return;
+    if (!pollId || isConnectingRef.current) return;
+
+    // Close existing connection if any
+    if (wsRef.current && wsRef.current.readyState !== WebSocket.CLOSED) {
+      wsRef.current.close();
+    }
+
+    isConnectingRef.current = true;
 
     try {
       const ws = new WebSocket(`${WS_BASE_URL}/ws/poll/${pollId}`);
@@ -24,6 +32,7 @@ export function useWebSocket(pollId: string) {
         console.log('WebSocket connected');
         setIsConnected(true);
         reconnectAttemptsRef.current = 0;
+        isConnectingRef.current = false;
       };
 
       ws.onmessage = (event) => {
@@ -79,6 +88,7 @@ export function useWebSocket(pollId: string) {
       ws.onclose = () => {
         console.log('WebSocket disconnected');
         setIsConnected(false);
+        isConnectingRef.current = false;
 
         // Exponential backoff reconnection
         const delay = Math.min(1000 * Math.pow(2, reconnectAttemptsRef.current), 30000);
@@ -92,6 +102,7 @@ export function useWebSocket(pollId: string) {
 
       ws.onerror = (error) => {
         console.error('WebSocket error:', error);
+        isConnectingRef.current = false;
       };
 
       // Send ping every 30 seconds to keep connection alive
@@ -110,6 +121,11 @@ export function useWebSocket(pollId: string) {
   }, [pollId]);
 
   useEffect(() => {
+    // Prevent duplicate connections
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      return;
+    }
+
     connect();
 
     return () => {
@@ -118,6 +134,7 @@ export function useWebSocket(pollId: string) {
       }
       if (wsRef.current) {
         wsRef.current.close();
+        wsRef.current = null;
       }
     };
   }, [connect]);

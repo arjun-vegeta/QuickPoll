@@ -5,6 +5,7 @@ import "./globals.css";
 import { useState, useEffect } from 'react';
 import { getUser, logout, isAuthenticated } from '@/lib/auth';
 import { LogOut, User as UserIcon } from 'lucide-react';
+import { AuthModal } from '@/components/AuthModal';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -14,6 +15,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const [user, setUser] = useState<any>(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated()) {
@@ -24,6 +26,12 @@ export default function RootLayout({
   const handleLogout = () => {
     logout();
     setUser(null);
+  };
+
+  const handleAuthSuccess = () => {
+    setShowAuthModal(false);
+    setUser(getUser());
+    window.location.reload();
   };
 
   return (
@@ -58,12 +66,20 @@ export default function RootLayout({
                       </button>
                     </>
                   ) : (
-                    <a 
-                      href="/create" 
-                      className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
-                    >
-                      Create Poll
-                    </a>
+                    <>
+                      <button
+                        onClick={() => setShowAuthModal(true)}
+                        className="px-4 py-2 border border-primary text-primary rounded-md hover:bg-primary/10 transition-colors"
+                      >
+                        Login
+                      </button>
+                      <a 
+                        href="/create" 
+                        className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
+                      >
+                        Create Poll
+                      </a>
+                    </>
                   )}
                 </div>
               </div>
@@ -72,6 +88,13 @@ export default function RootLayout({
           <main className="container mx-auto px-4 py-8">
             {children}
           </main>
+          
+          {showAuthModal && (
+            <AuthModal
+              onClose={() => setShowAuthModal(false)}
+              onSuccess={handleAuthSuccess}
+            />
+          )}
         </div>
       </body>
     </html>
