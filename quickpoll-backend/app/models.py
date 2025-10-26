@@ -11,6 +11,7 @@ class User(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     username = Column(String(50), unique=True, nullable=False)
     email = Column(String(255), unique=True, nullable=False)
+    password_hash = Column(String(255), nullable=True)  # Nullable for backward compatibility
     created_at = Column(DateTime, default=datetime.utcnow)
     
     polls = relationship("Poll", back_populates="creator")

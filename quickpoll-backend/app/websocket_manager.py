@@ -31,8 +31,11 @@ class ConnectionManager:
         if poll_id not in self.active_connections:
             return
             
+        # Create a copy of the set to avoid "set changed size during iteration" error
+        connections = list(self.active_connections[poll_id].copy())
         disconnected = set()
-        for connection in self.active_connections[poll_id]:
+        
+        for connection in connections:
             try:
                 await connection.send_json(message)
             except Exception:

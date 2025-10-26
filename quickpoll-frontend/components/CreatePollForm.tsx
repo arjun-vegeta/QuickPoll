@@ -48,7 +48,6 @@ export function CreatePollForm() {
 
     try {
       setIsSubmitting(true);
-      const userId = getUserId();
 
       const poll = await pollsApi.create({
         title: title.trim(),
@@ -57,13 +56,16 @@ export function CreatePollForm() {
           option_text: opt.trim(),
           position: index,
         })),
-        creator_id: userId,
       });
 
       router.push(`/poll/${poll.id}`);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating poll:', error);
-      alert('Failed to create poll. Please try again.');
+      if (error.response?.status === 401) {
+        alert('Please login to create a poll');
+      } else {
+        alert('Failed to create poll. Please try again.');
+      }
     } finally {
       setIsSubmitting(false);
     }

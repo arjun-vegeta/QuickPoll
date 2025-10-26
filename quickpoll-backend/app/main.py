@@ -6,7 +6,7 @@ from uuid import UUID
 
 from .database import get_db
 from .websocket_manager import manager
-from .routes import polls, votes, likes
+from .routes import polls, votes, likes, auth
 from .services.poll_service import get_poll
 
 app = FastAPI(title="QuickPoll API", version="1.0.0")
@@ -21,6 +21,7 @@ app.add_middleware(
 )
 
 # Include routers
+app.include_router(auth.router)
 app.include_router(polls.router)
 app.include_router(votes.router)
 app.include_router(likes.router)

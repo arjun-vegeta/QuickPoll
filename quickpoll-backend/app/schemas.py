@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
 from typing import List, Optional
 from datetime import datetime
 from uuid import UUID
@@ -20,7 +20,6 @@ class PollCreate(BaseModel):
     title: str = Field(..., min_length=1, max_length=500)
     description: Optional[str] = None
     options: List[PollOptionCreate] = Field(..., min_items=2)
-    creator_id: UUID
 
 class PollResponse(BaseModel):
     id: UUID
@@ -32,6 +31,7 @@ class PollResponse(BaseModel):
     total_votes: int
     total_likes: int
     options: List[PollOptionResponse]
+    creator_id: UUID
     
     class Config:
         from_attributes = True
@@ -64,9 +64,15 @@ class LikeResponse(BaseModel):
     class Config:
         from_attributes = True
 
-class UserCreate(BaseModel):
+# Auth schemas
+class UserRegister(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
-    email: str
+    email: EmailStr
+    password: str = Field(..., min_length=6)
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
 
 class UserResponse(BaseModel):
     id: UUID
@@ -76,3 +82,8 @@ class UserResponse(BaseModel):
     
     class Config:
         from_attributes = True
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: UserResponse

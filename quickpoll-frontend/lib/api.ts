@@ -1,18 +1,29 @@
-import axios from 'axios';
-import { Poll, Vote, Like } from '@/types/poll';
+import axios from "axios";
+import { Poll, Vote, Like } from "@/types/poll";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
+});
+
+// Add auth token to requests
+api.interceptors.request.use((config) => {
+  if (typeof window !== "undefined") {
+    const token = localStorage.getItem("auth_token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  }
+  return config;
 });
 
 export const pollsApi = {
   getAll: async (): Promise<Poll[]> => {
-    const response = await api.get('/polls/');
+    const response = await api.get("/polls/");
     return response.data;
   },
 
@@ -25,9 +36,8 @@ export const pollsApi = {
     title: string;
     description?: string;
     options: { option_text: string; position: number }[];
-    creator_id: string;
   }): Promise<Poll> => {
-    const response = await api.post('/polls/', pollData);
+    const response = await api.post("/polls/", pollData);
     return response.data;
   },
 
@@ -38,7 +48,7 @@ export const pollsApi = {
 
 export const votesApi = {
   create: async (voteData: Vote): Promise<any> => {
-    const response = await api.post('/votes/', voteData);
+    const response = await api.post("/votes/", voteData);
     return response.data;
   },
 
@@ -49,20 +59,28 @@ export const votesApi = {
 };
 
 export const likesApi = {
-  toggle: async (likeData: Like): Promise<{ liked: boolean; total_likes: number }> => {
-    const response = await api.post('/likes/', likeData);
+  toggle: async (
+    likeData: Like
+  ): Promise<{ liked: boolean; total_likes: number }> => {
+    const response = await api.post("/likes/", likeData);
     return response.data;
   },
 
-  checkUserLike: async (pollId: string, userId: string): Promise<{ liked: boolean }> => {
+  checkUserLike: async (
+    pollId: string,
+    userId: string
+  ): Promise<{ liked: boolean }> => {
     const response = await api.get(`/likes/poll/${pollId}/user/${userId}`);
     return response.data;
   },
 };
 
 export const usersApi = {
-  create: async (userData: { username: string; email: string }): Promise<any> => {
-    const response = await api.post('/polls/users', userData);
+  create: async (userData: {
+    username: string;
+    email: string;
+  }): Promise<any> => {
+    const response = await api.post("/polls/users", userData);
     return response.data;
   },
 };
