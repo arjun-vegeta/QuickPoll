@@ -40,6 +40,10 @@ async def create_comment(
         )
         
         db.add(new_comment)
+        
+        # Increment total_comments on poll
+        poll.total_comments += 1
+        
         db.commit()
         db.refresh(new_comment)
         
@@ -91,6 +95,11 @@ def delete_comment(
         raise HTTPException(status_code=403, detail="Not authorized to delete this comment")
     
     db.delete(comment)
+    
+    # Decrement total_comments on poll
+    if poll.total_comments > 0:
+        poll.total_comments -= 1
+    
     db.commit()
     
     return {"message": "Comment deleted successfully"}

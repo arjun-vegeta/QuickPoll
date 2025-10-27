@@ -23,11 +23,13 @@ class Poll(Base):
     creator_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"))
     title = Column(String(500), nullable=False)
     description = Column(Text)
+    category = Column(String(50), default="General")  # New category field
     created_at = Column(DateTime, default=datetime.utcnow)
     expires_at = Column(DateTime, nullable=True)
     is_active = Column(Boolean, default=True)
     total_votes = Column(Integer, default=0)
     total_likes = Column(Integer, default=0)
+    total_comments = Column(Integer, default=0)  # New field for comment count
     
     creator = relationship("User", back_populates="polls")
     options = relationship("PollOption", back_populates="poll", cascade="all, delete-orphan")
@@ -38,6 +40,7 @@ class Poll(Base):
     __table_args__ = (
         Index('idx_polls_active', 'is_active', postgresql_where=(is_active == True)),
         Index('idx_polls_created', 'created_at'),
+        Index('idx_polls_category', 'category'),
     )
 
 class Comment(Base):

@@ -22,7 +22,8 @@ def create_new_poll(
         new_poll = PollModel(
             creator_id=current_user.id,
             title=poll.title,
-            description=poll.description
+            description=poll.description,
+            category=poll.category
         )
         db.add(new_poll)
         db.flush()
@@ -45,10 +46,51 @@ def create_new_poll(
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.get("/", response_model=List[PollResponse])
-def list_polls(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    """Get all active polls"""
-    polls = get_all_polls(db, skip, limit)
+def list_polls(
+    skip: int = 0, 
+    limit: int = 100, 
+    sort_by: str = "created_at",  # created_at, votes, likes, comments
+    category: str = None,
+    search: str = None,
+    db: Session = Depends(get_db)
+):
+    """Get all active polls with sorting, filtering, and search"""
+    query = db.query(PollModel).filter(PollModel.is_active == True)
+    
+    # Filter by category
+    if category and category != "All":
+        query = query.filter(PollModel.category == category)
+    
+    # Search by title
+    if search:
+        query = query.filter(PollModel.title.ilike(f"%{search}%"))
+    
+    # Sort
+    if sort_by == "votes":
+        query = query.order_by(PollModel.total_votes.desc())
+    elif sort_by == "likes":
+        query = query.order_by(PollModel.total_likes.desc())
+    elif sort_by == "comments":
+        query = query.order_by(PollModel.total_comments.desc())
+    else:  # created_at (default)
+        query = query.order_by(PollModel.created_at.desc())
+    
+    polls = query.offset(skip).limit(limit).all()
     return polls
+
+@router.get("/categories", response_model=List[str])
+def get_categories():
+    """Get list of available poll categories"""
+    return [
+        "Technology",
+        "Sports",
+        "Entertainment",
+        "Politics",
+        "Business",
+        "Science",
+        "Lifestyle",
+        "General"
+    ]
 
 @router.get("/{poll_id}", response_model=PollResponse)
 def get_poll_by_id(poll_id: UUID, db: Session = Depends(get_db)):

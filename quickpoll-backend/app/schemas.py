@@ -19,17 +19,20 @@ class PollOptionResponse(BaseModel):
 class PollCreate(BaseModel):
     title: str = Field(..., min_length=1, max_length=500)
     description: Optional[str] = None
+    category: str = Field(default="General")
     options: List[PollOptionCreate] = Field(..., min_items=2)
 
 class PollResponse(BaseModel):
     id: UUID
     title: str
     description: Optional[str]
+    category: str
     created_at: datetime
     expires_at: Optional[datetime]
     is_active: bool
     total_votes: int
     total_likes: int
+    total_comments: int
     options: List[PollOptionResponse]
     creator_id: UUID
     

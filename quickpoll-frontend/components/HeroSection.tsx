@@ -5,6 +5,7 @@ import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { IBM_Plex_Mono } from "next/font/google";
+import Marquee from "react-fast-marquee";
 
 const ibmPlexMono = IBM_Plex_Mono({
   weight: ["700"],
@@ -46,7 +47,7 @@ const PollCard = ({
     href={`/poll/${poll.id}`}
     className={`group relative flex-shrink-0 ${className}`}
   >
-    <div className="w-full h-full bg-transparent border border-white/60 rounded-2xl p-3 transition-all duration-300 flex items-center justify-center">
+    <div className="w-full h-full bg-transparent border hover:border-2 border-white/70 hover:border-white rounded-2xl p-3 transition-all duration-300 flex items-center justify-center">
       <p
         className={`${textSize} font-normal text-white line-clamp-3 text-center`}
       >
@@ -54,7 +55,7 @@ const PollCard = ({
       </p>
 
       {/* Hover Arrow */}
-      <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
         <ArrowUpRight className="w-6 h-6 text-white" strokeWidth={2} />
       </div>
     </div>
@@ -68,7 +69,6 @@ export function HeroSection() {
     setMounted(true);
   }, []);
 
-  // Create a pattern: small-small-large for the grid
   const createGridPattern = () => {
     const pattern = [];
     for (let i = 0; i < TRENDING_POLLS.length; i += 3) {
@@ -98,7 +98,6 @@ export function HeroSection() {
   };
 
   const gridPattern = createGridPattern();
-  // Duplicate for seamless infinite scroll
   const duplicatedPattern = [...gridPattern, ...gridPattern, ...gridPattern];
 
   if (!mounted) {
@@ -106,28 +105,28 @@ export function HeroSection() {
   }
 
   return (
-    <div className="relative w-screen min-h-screen bg-gradient-to-b from-black via-black to-[#31E41D]/20 text-white overflow-hidden flex flex-col py-20">
-      {/* Main Content */}
-      <div className="flex flex-col items-center justify-center px-4 z-10 mb-32">
+    <div className="relative w-screen min-h-screen bg-gradient-to-b from-black via-black to-[#10750B] text-white overflow-hidden flex flex-col">
+      {/* Main Content Wrapper - Added pb-10 for bottom padding */}
+      <div className="flex-1 flex flex-col items-center justify-center px-4 z-10 pt-40 pb-10">
         {/* Heading */}
-        <div className="text-center mb-16 space-y-6">
+        <div className="text-center mb-10 md:mb-12 lg:mb-16 space-y-4 md:space-y-6">
           <h1
-            className={`text-[96px] font-bold tracking-tight ${ibmPlexMono.className}`}
+            className={`text-6xl md:text-8xl lg:text-[96px] font-bold tracking-tight ${ibmPlexMono.className}`}
           >
             QuickPoll
           </h1>
-          <p className="text-[80px] text-white/90 font-light leading-tight">
+          <p className="text-3xl md:text-5xl lg:text-[80px] text-white/90 font-light leading-tight">
             Your Hub for Live Polling
           </p>
         </div>
 
-        {/* CTA Buttons */}
-        <div className="flex gap-6">
-          <Link href="/polls">
+        {/* CTA Buttons - Always row, equal width, constrained on mobile */}
+        <div className="flex flex-row gap-4 sm:gap-6 w-full max-w-sm sm:w-auto sm:max-w-none">
+          <Link href="/polls" className="flex-1">
             <Button
               size="lg"
               variant="outline"
-              className="group border-white/40 hover:bg-white text-white hover:text-black text-lg font-semibold px-10 py-5 rounded-xl h-auto bg-transparent hover:border-white transition-all duration-200 min-w-[200px]"
+              className="group border-white/40 hover:bg-white text-white hover:text-black text-base md:text-lg font-semibold px-6 md:px-10 py-4 md:py-5 rounded-xl h-auto bg-transparent hover:border-white transition-all duration-200 w-full"
             >
               <svg
                 width="24"
@@ -147,10 +146,10 @@ export function HeroSection() {
               Poll Now
             </Button>
           </Link>
-          <Link href="/create">
+          <Link href="/create" className="flex-1">
             <Button
               size="lg"
-              className="bg-[#31E41D] hover:bg-[#28b817] text-black text-lg font-semibold px-10 py-5 rounded-xl h-auto transition-all min-w-[200px]"
+              className="bg-[#31E41D] hover:bg-[#28b817] text-black text-base md:text-lg font-semibold px-6 md:px-10 py-4 md:py-5 rounded-xl h-auto transition-all w-full"
             >
               <svg
                 width="24"
@@ -173,46 +172,36 @@ export function HeroSection() {
       </div>
 
       {/* Infinite Marquee Grid Section */}
-      <div className="relative w-full pb-20 z-0 overflow-hidden">
+      <div className="relative w-full z-0 overflow-hidden pt-10 pb-32">
         {/* Scrolling Grid Container */}
-        <div className="flex gap-10 animate-marquee-left">
+        <Marquee speed={160} gradient={false} pauseOnHover>
           {duplicatedPattern.map((column, columnIndex) => (
-            <div key={`column-${columnIndex}`} className="flex flex-col gap-10">
+            <div
+              key={`column-${columnIndex}`}
+              className="flex flex-col gap-7 sm:gap-10 mx-3 lg:mx-5" // Vertical spacing + horizontal margin
+            >
               {column.polls.map((item, pollIndex) => (
                 <PollCard
                   key={`poll-${columnIndex}-${pollIndex}`}
                   poll={item.poll}
+                  // Updated responsive classes for size
                   className={
                     item.size === "large"
-                      ? "w-[360px] h-[200px]"
-                      : "w-[360px] h-[80px]"
+                      ? "w-[260px] h-[180px] sm:w-[300px] sm:h-[200px] lg:w-[360px]"
+                      : "w-[260px] h-[76px] sm:w-[300px] sm:h-[80px] lg:w-[360px]"
                   }
-                  textSize={item.size === "large" ? "text-[28px]" : "text-lg"}
+                  // Updated responsive classes for text size
+                  textSize={
+                    item.size === "large"
+                      ? "text-xl lg:text-[28px]"
+                      : "text-base lg:text-lg"
+                  }
                 />
               ))}
             </div>
           ))}
-        </div>
+        </Marquee>
       </div>
-
-      <style jsx global>{`
-        @keyframes marquee-left {
-          0% {
-            transform: translateX(0);
-          }
-          100% {
-            transform: translateX(-33.333%);
-          }
-        }
-
-        .animate-marquee-left {
-          animation: marquee-left 25s linear infinite;
-        }
-
-        .animate-marquee-left:hover {
-          animation-play-state: paused;
-        }
-      `}</style>
     </div>
   );
 }

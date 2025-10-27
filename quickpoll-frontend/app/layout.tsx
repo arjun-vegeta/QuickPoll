@@ -61,35 +61,35 @@ export default function RootLayout({
           <>{children}</>
         ) : (
           // Regular layout with navbar for other pages
-          <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
+          <div className="min-h-screen bg-black">
             {/* Modern Navbar */}
-            <nav className="sticky top-0 z-50 backdrop-blur-lg bg-white/80 border-b border-slate-200/60">
+            <nav className="sticky top-0 z-50 backdrop-blur-lg bg-[#1C1C1C]/95 border-b border-[#323232]">
               <div className="container mx-auto px-6 py-4">
                 <div className="flex items-center justify-between">
                   <a href="/" className="flex items-center gap-2 group">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
-                      <span className="text-white font-bold text-sm">Q</span>
+                    <div className="w-8 h-8 rounded-lg bg-[#34CC41] flex items-center justify-center">
+                      <span className="text-black font-bold text-sm">Q</span>
                     </div>
-                    <span className="text-xl font-semibold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+                    <span className="text-xl font-semibold text-[#E6E6E6]">
                       QuickPoll
                     </span>
                   </a>
                   <div className="flex items-center gap-3">
                     {user ? (
                       <>
-                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 text-sm text-slate-700">
+                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#323232] text-sm text-[#E6E6E6]">
                           <UserIcon className="h-3.5 w-3.5" />
                           <span className="font-medium">{user.username}</span>
                         </div>
                         <a
                           href="/create"
-                          className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg hover:shadow-lg hover:scale-105 transition-all duration-200 font-medium text-sm"
+                          className="px-4 py-2 bg-[#34CC41] text-black rounded-lg hover:bg-[#2eb838] hover:scale-105 transition-all duration-200 font-medium text-sm"
                         >
                           Create Poll
                         </a>
                         <button
                           onClick={handleLogout}
-                          className="px-3 py-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors flex items-center gap-2 text-sm"
+                          className="px-3 py-2 text-[#A4A4A4] hover:text-[#E6E6E6] hover:bg-[#323232] rounded-lg transition-colors flex items-center gap-2 text-sm"
                         >
                           <LogOut className="h-4 w-4" />
                         </button>
@@ -98,13 +98,13 @@ export default function RootLayout({
                       <>
                         <button
                           onClick={() => setShowAuthModal(true)}
-                          className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-lg transition-colors font-medium text-sm"
+                          className="px-4 py-2 text-[#E6E6E6] hover:bg-[#323232] rounded-lg transition-colors font-medium text-sm"
                         >
                           Login
                         </button>
                         <a
                           href="/create"
-                          className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg hover:shadow-lg hover:scale-105 transition-all duration-200 font-medium text-sm"
+                          className="px-4 py-2 bg-[#34CC41] text-black rounded-lg hover:bg-[#2eb838] hover:scale-105 transition-all duration-200 font-medium text-sm"
                         >
                           Create Poll
                         </a>
@@ -116,9 +116,7 @@ export default function RootLayout({
             </nav>
 
             {/* Main Content */}
-            <main className="container mx-auto px-6 py-12 max-w-7xl">
-              {children}
-            </main>
+            <main className="w-full">{children}</main>
 
             <AuthModal
               open={showAuthModal}

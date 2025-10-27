@@ -9,11 +9,14 @@ export interface Poll {
   id: string;
   title: string;
   description?: string;
+  category: string;
   created_at: string;
   expires_at?: string;
   is_active: boolean;
   total_votes: number;
   total_likes: number;
+  total_comments: number;
+  creator_id: string;
   options: PollOption[];
 }
 
