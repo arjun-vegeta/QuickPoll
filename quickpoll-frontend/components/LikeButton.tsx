@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Heart } from 'lucide-react';
 import { likesApi } from '@/lib/api';
 import { getUserId } from '@/lib/utils';
@@ -56,14 +57,23 @@ export function LikeButton({ pollId, totalLikes }: LikeButtonProps) {
   };
 
   return (
-    <Button
-      onClick={handleLike}
-      disabled={isLoading}
-      variant={liked ? 'default' : 'outline'}
-      className="gap-2"
-    >
-      <Heart className={`h-4 w-4 ${liked ? 'fill-current' : ''}`} />
-      <span>{likes}</span>
-    </Button>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            onClick={handleLike}
+            disabled={isLoading}
+            variant={liked ? 'default' : 'outline'}
+            className="gap-2"
+          >
+            <Heart className={`h-4 w-4 ${liked ? 'fill-current' : ''}`} />
+            <span>{likes}</span>
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>{liked ? 'Unlike this poll' : 'Like this poll'}</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }

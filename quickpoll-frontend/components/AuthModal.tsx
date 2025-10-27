@@ -3,16 +3,24 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { authApi, saveAuth } from '@/lib/auth';
-import { X } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 interface AuthModalProps {
+  open?: boolean;
   onClose: () => void;
   onSuccess: () => void;
 }
 
-export function AuthModal({ onClose, onSuccess }: AuthModalProps) {
+export function AuthModal({ open = true, onClose, onSuccess }: AuthModalProps) {
   const [isLogin, setIsLogin] = useState(true);
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -48,102 +56,105 @@ export function AuthModal({ onClose, onSuccess }: AuthModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-md relative">
-        <button
-          onClick={onClose}
-          className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
-        >
-          <X className="h-5 w-5" />
-        </button>
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{isLogin ? 'Welcome back' : 'Create an account'}</DialogTitle>
+          <DialogDescription>
+            {isLogin 
+              ? 'Enter your credentials to access your account' 
+              : 'Sign up to create and manage polls'}
+          </DialogDescription>
+        </DialogHeader>
 
-        <CardHeader>
-          <CardTitle>{isLogin ? 'Login' : 'Sign Up'}</CardTitle>
-        </CardHeader>
-
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {!isLogin && (
-              <div>
-                <label className="block text-sm font-medium mb-2">Username</label>
-                <Input
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Enter username"
-                  required={!isLogin}
-                  minLength={3}
-                  maxLength={50}
-                />
-              </div>
-            )}
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Email</label>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {!isLogin && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                Username
+              </label>
               <Input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter email"
-                required
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Enter username"
+                required={!isLogin}
+                minLength={3}
+                maxLength={50}
               />
             </div>
+          )}
 
-            <div>
-              <label className="block text-sm font-medium mb-2">Password</label>
-              <Input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter password"
-                required
-                minLength={6}
-              />
-            </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              Email
+            </label>
+            <Input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter email"
+              required
+            />
+          </div>
 
-            {error && (
-              <div className="text-sm text-red-600 bg-red-50 p-3 rounded">
-                {error}
-              </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              Password
+            </label>
+            <Input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter password"
+              required
+              minLength={6}
+            />
+          </div>
+
+          {error && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
+          <Button type="submit" disabled={isLoading} className="w-full">
+            {isLoading ? 'Please wait...' : isLogin ? 'Login' : 'Sign Up'}
+          </Button>
+
+          <div className="text-center text-sm">
+            {isLogin ? (
+              <p className="text-muted-foreground">
+                Don't have an account?{' '}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsLogin(false);
+                    setError('');
+                  }}
+                  className="text-primary hover:underline font-medium"
+                >
+                  Sign up
+                </button>
+              </p>
+            ) : (
+              <p className="text-muted-foreground">
+                Already have an account?{' '}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsLogin(true);
+                    setError('');
+                  }}
+                  className="text-primary hover:underline font-medium"
+                >
+                  Login
+                </button>
+              </p>
             )}
-
-            <Button type="submit" disabled={isLoading} className="w-full">
-              {isLoading ? 'Please wait...' : isLogin ? 'Login' : 'Sign Up'}
-            </Button>
-
-            <div className="text-center text-sm">
-              {isLogin ? (
-                <p>
-                  Don't have an account?{' '}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsLogin(false);
-                      setError('');
-                    }}
-                    className="text-primary hover:underline"
-                  >
-                    Sign up
-                  </button>
-                </p>
-              ) : (
-                <p>
-                  Already have an account?{' '}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsLogin(true);
-                      setError('');
-                    }}
-                    className="text-primary hover:underline"
-                  >
-                    Login
-                  </button>
-                </p>
-              )}
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

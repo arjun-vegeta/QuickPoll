@@ -1,4 +1,4 @@
-import { type ClassValue, clsx } from "clsx"
+import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
 export function cn(...inputs: ClassValue[]) {
@@ -7,6 +7,7 @@ export function cn(...inputs: ClassValue[]) {
 
 // Generate a simple user ID (in production, use proper auth)
 export function getUserId(): string {
+  if (typeof window === 'undefined') return '';
   let userId = localStorage.getItem('quickpoll_user_id');
   if (!userId) {
     userId = crypto.randomUUID();

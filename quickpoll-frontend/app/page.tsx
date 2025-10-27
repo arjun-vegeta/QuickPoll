@@ -5,6 +5,8 @@ import { PollCard } from '@/components/PollCard';
 import { Poll } from '@/types/poll';
 import { pollsApi } from '@/lib/api';
 import { isAuthenticated, getUser } from '@/lib/auth';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { MessageSquare } from 'lucide-react';
 
 export default function Home() {
   const [allPolls, setAllPolls] = useState<Poll[]>([]);
@@ -48,53 +50,54 @@ export default function Home() {
   const displayPolls = activeTab === 'my' ? myPolls : allPolls;
 
   return (
-    <div>
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2">
-          {activeTab === 'my' ? 'My Polls' : 'Active Polls'}
+    <div className="space-y-8">
+      {/* Hero Section */}
+      <div className="text-center space-y-4 py-8">
+        <h1 className="text-5xl font-bold bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 bg-clip-text text-transparent">
+          {activeTab === 'my' ? 'My Polls' : 'Discover Polls'}
         </h1>
-        <p className="text-muted-foreground">
+        <p className="text-lg text-slate-600 max-w-2xl mx-auto">
           {activeTab === 'my' 
-            ? 'Polls you have created' 
-            : 'Vote on polls and see results update in real-time'}
+            ? 'Manage and track your created polls' 
+            : 'Vote on polls and watch results update in real-time'}
         </p>
       </div>
 
+      {/* Tabs */}
       {user && (
-        <div className="mb-6 flex gap-2 border-b">
-          <button
-            onClick={() => setActiveTab('all')}
-            className={`px-4 py-2 font-medium transition-colors ${
-              activeTab === 'all'
-                ? 'text-primary border-b-2 border-primary'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            All Polls ({allPolls.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('my')}
-            className={`px-4 py-2 font-medium transition-colors ${
-              activeTab === 'my'
-                ? 'text-primary border-b-2 border-primary'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            My Polls ({myPolls.length})
-          </button>
+        <div className="flex justify-center">
+          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'all' | 'my')} className="w-full max-w-md">
+            <TabsList className="grid w-full grid-cols-2 h-12">
+              <TabsTrigger value="all" className="text-sm font-medium">
+                All Polls <span className="ml-2 text-xs opacity-60">({allPolls.length})</span>
+              </TabsTrigger>
+              <TabsTrigger value="my" className="text-sm font-medium">
+                My Polls <span className="ml-2 text-xs opacity-60">({myPolls.length})</span>
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
       )}
 
+      {/* Empty State */}
       {displayPolls.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-xl text-muted-foreground mb-4">
-            {activeTab === 'my' ? 'You haven\'t created any polls yet' : 'No polls yet'}
+        <div className="text-center py-20">
+          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
+            <MessageSquare className="h-10 w-10 text-blue-600" />
+          </div>
+          <h3 className="text-2xl font-semibold text-slate-900 mb-2">
+            {activeTab === 'my' ? 'No polls yet' : 'Be the first!'}
+          </h3>
+          <p className="text-slate-600 mb-6 max-w-md mx-auto">
+            {activeTab === 'my' 
+              ? 'Create your first poll and start gathering opinions' 
+              : 'Start the conversation by creating the first poll'}
           </p>
           <a 
             href="/create" 
-            className="inline-block px-6 py-3 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg hover:shadow-lg hover:scale-105 transition-all duration-200 font-medium"
           >
-            Create {activeTab === 'my' ? 'your first' : 'the first'} poll
+            Create {activeTab === 'my' ? 'Your First' : 'First'} Poll
           </a>
         </div>
       ) : (
