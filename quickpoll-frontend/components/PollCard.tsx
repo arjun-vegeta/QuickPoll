@@ -78,17 +78,9 @@ export function PollCard({ poll, showDelete = false, onDelete }: PollCardProps) 
                 </Button>
               )}
             </div>
-            <div className="flex items-start justify-between gap-2">
-              <CardTitle className="line-clamp-2 text-lg font-semibold text-[#E6E6E6] group-hover:text-[#E6E6E6] transition-colors">
-                {poll.title}
-              </CardTitle>
-              <Badge
-                variant="secondary"
-                className="shrink-0 bg-[#323232] text-[#A4A4A4] border-0"
-              >
-                {poll.options.length}
-              </Badge>
-            </div>
+            <CardTitle className="line-clamp-2 text-lg font-semibold text-[#E6E6E6] group-hover:text-[#E6E6E6] transition-colors">
+              {poll.title}
+            </CardTitle>
             {poll.description && (
               <CardDescription className="line-clamp-2 text-sm text-[#A4A4A4]">
                 {poll.description}
