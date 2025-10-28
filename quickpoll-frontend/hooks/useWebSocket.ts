@@ -50,6 +50,11 @@ export function useWebSocket(pollId: string) {
       };
 
       ws.onmessage = (event) => {
+        // Handle plain text messages (like "pong")
+        if (typeof event.data === 'string' && event.data === 'pong') {
+          return; // Ignore pong responses
+        }
+
         try {
           const message: WebSocketMessage = JSON.parse(event.data);
 
