@@ -1,7 +1,8 @@
 import axios from "axios";
 import { Poll, Vote, Like } from "@/types/poll";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+// Remove trailing slash from API_BASE_URL to prevent double slashes
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000").replace(/\/$/, '');
 
 const api = axios.create({
   baseURL: API_BASE_URL,
