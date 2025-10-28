@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: quickpoll-backend
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: DATABASE_URL
+        fromDatabase:
+          name: quickpoll-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: CORS_ORIGINS
+        value: https://your-frontend-url.netlify.app
+
+databases:
+  - name: quickpoll-db
+    databaseName: quickpoll
+    user: quickpoll
