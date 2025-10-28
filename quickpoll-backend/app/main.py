@@ -2,6 +2,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 import json
+import os
 from uuid import UUID
 
 from .database import get_db
@@ -11,10 +12,12 @@ from .services.poll_service import get_poll
 
 app = FastAPI(title="QuickPoll API", version="1.0.0")
 
-# CORS configuration
+# CORS configuration - get origins from environment variable
+cors_origins = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
