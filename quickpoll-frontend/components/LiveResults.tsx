@@ -18,30 +18,42 @@ interface LiveResultsProps {
   totalVotes: number;
 }
 
-// Generate shades of blue/indigo for each option
+// Generate shades of green for each option - darker for higher percentages
 const generateColorShades = (count: number) => {
-  const baseHue = 220; // Blue hue
+  // Base green color #34CC41
+  const baseColor = { h: 127, s: 60, l: 50 };
+  
   return Array.from({ length: count }, (_, i) => {
-    const lightness = 70 - (i * (40 / Math.max(count - 1, 1))); // From light to dark
-    const saturation = 70 + (i * (20 / Math.max(count - 1, 1))); // Increase saturation
-    return `hsl(${baseHue}, ${saturation}%, ${lightness}%)`;
+    // Vary lightness from darker to lighter (index 0 = darkest = highest votes)
+    const lightness = baseColor.l - 15 + (i * (35 / Math.max(count - 1, 1)));
+    // Slightly vary saturation
+    const saturation = baseColor.s + 10 - (i * (15 / Math.max(count - 1, 1)));
+    return `hsl(${baseColor.h}, ${saturation}%, ${lightness}%)`;
   });
 };
 
 export function LiveResults({ options, totalVotes }: LiveResultsProps) {
   const [chartType, setChartType] = useState<"bar" | "pie">("bar");
 
-  // Generate color shades based on number of options
+  // Prepare data for charts - sorted by position first
+  const sortedOptions = options.sort((a, b) => a.position - b.position);
+  
+  // Sort by votes to assign colors (highest votes = darkest)
+  const optionsByVotes = [...sortedOptions].sort((a, b) => b.vote_count - a.vote_count);
+  
+  // Create color map based on vote ranking
+  const colorMap = new Map();
   const colors = generateColorShades(options.length);
+  optionsByVotes.forEach((option, index) => {
+    colorMap.set(option.id, colors[index]);
+  });
 
-  // Prepare data for charts
-  const chartData = options
-    .sort((a, b) => a.position - b.position)
-    .map((option, index) => ({
+  // Prepare data for charts with colors based on vote ranking
+  const chartData = sortedOptions.map((option) => ({
       name: option.option_text,
       votes: option.vote_count,
       percentage: calculatePercentage(option.vote_count, totalVotes),
-      fill: colors[index],
+      fill: colorMap.get(option.id),
     }));
 
   // Create chart config
@@ -61,50 +73,79 @@ export function LiveResults({ options, totalVotes }: LiveResultsProps) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 overflow-visible">
+      {/* Progress Bars First */}
+      <div className="space-y-3">
+        {chartData.map((item, index) => (
+          <div key={index} className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                <div
+                  className="w-3 h-3 rounded-sm shrink-0"
+                  style={{ backgroundColor: item.fill }}
+                />
+                <span className="font-medium line-clamp-1 text-[#E6E6E6]">{item.name}</span>
+              </div>
+              <span className="text-[#A4A4A4] font-medium shrink-0 ml-2">
+                {item.votes} ({item.percentage}%)
+              </span>
+            </div>
+            <div className="w-full bg-[#1C1C1C] rounded-full h-3 overflow-hidden border border-[#323232]">
+              <div
+                className="h-3 rounded-full transition-all duration-500 ease-out"
+                style={{
+                  width: `${item.percentage}%`,
+                  backgroundColor: item.fill,
+                }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+
       {/* Chart Type Toggle */}
-      <Tabs value={chartType} onValueChange={(value) => setChartType(value as "bar" | "pie")}>
-        <TabsList className="grid w-full max-w-md mx-auto grid-cols-2">
-          <TabsTrigger value="bar" className="gap-2">
+      <Tabs value={chartType} onValueChange={(value) => setChartType(value as "bar" | "pie")} className="mt-8 overflow-visible">
+        <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 h-11 bg-[#1C1C1C] border border-[#323232]">
+          <TabsTrigger value="bar" className="gap-2 text-sm font-medium text-[#A4A4A4] data-[state=active]:text-black data-[state=active]:bg-[#34CC41]">
             <BarChart3 className="h-4 w-4" />
             Bar Chart
           </TabsTrigger>
-          <TabsTrigger value="pie" className="gap-2">
+          <TabsTrigger value="pie" className="gap-2 text-sm font-medium text-[#A4A4A4] data-[state=active]:text-black data-[state=active]:bg-[#34CC41]">
             <PieChartIcon className="h-4 w-4" />
             Pie Chart
           </TabsTrigger>
         </TabsList>
 
         {/* Bar Chart */}
-        <TabsContent value="bar" className="mt-6">
-          <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
+        <TabsContent value="bar" className="mt-6 overflow-visible">
+          <ChartContainer config={chartConfig} className="min-h-[400px] w-full overflow-visible">
             <BarChart
               data={chartData}
-              margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+              margin={{ top: 30, right: 30, bottom: 120, left: 30 }}
             >
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
               <XAxis
                 dataKey="name"
                 angle={-45}
                 textAnchor="end"
-                height={100}
+                height={120}
                 interval={0}
                 className="text-xs"
-                tick={{ fill: "hsl(var(--foreground))" }}
+                tick={{ fill: "#E6E6E6" }}
               />
               <ChartTooltip
                 content={({ active, payload }) => {
                   if (active && payload && payload.length) {
                     return (
-                      <div className="rounded-lg border bg-background p-3 shadow-lg">
-                        <p className="font-semibold text-sm mb-1">
+                      <div className="rounded-lg border border-[#323232] bg-[#1C1C1C] p-3 shadow-lg">
+                        <p className="font-semibold text-sm mb-1 text-[#E6E6E6]">
                           {payload[0].payload.name}
                         </p>
-                        <p className="text-sm text-muted-foreground">
-                          Votes: <span className="font-medium text-foreground">{payload[0].value}</span>
+                        <p className="text-sm text-[#A4A4A4]">
+                          Votes: <span className="font-medium text-[#E6E6E6]">{payload[0].value}</span>
                         </p>
-                        <p className="text-sm text-muted-foreground">
-                          Percentage: <span className="font-medium text-foreground">{payload[0].payload.percentage}%</span>
+                        <p className="text-sm text-[#A4A4A4]">
+                          Percentage: <span className="font-medium text-[#E6E6E6]">{payload[0].payload.percentage}%</span>
                         </p>
                       </div>
                     );
@@ -119,7 +160,7 @@ export function LiveResults({ options, totalVotes }: LiveResultsProps) {
                 <LabelList
                   position="top"
                   offset={12}
-                  className="fill-foreground"
+                  style={{ fill: '#E6E6E6' }}
                   fontSize={12}
                 />
               </Bar>
@@ -128,25 +169,26 @@ export function LiveResults({ options, totalVotes }: LiveResultsProps) {
         </TabsContent>
 
         {/* Pie Chart */}
-        <TabsContent value="pie" className="mt-6">
-          <ChartContainer
-            config={chartConfig}
-            className="mx-auto aspect-square max-h-[350px]"
-          >
-            <PieChart>
+        <TabsContent value="pie" className="mt-6 overflow-visible">
+          <div className="w-full overflow-visible" style={{ minHeight: '500px' }}>
+            <ChartContainer
+              config={chartConfig}
+              className="mx-auto w-full h-full overflow-visible"
+            >
+              <PieChart margin={{ top: 40, right: 100, bottom: 40, left: 100 }}>
               <ChartTooltip
                 content={({ active, payload }) => {
                   if (active && payload && payload.length) {
                     return (
-                      <div className="rounded-lg border bg-background p-3 shadow-lg">
-                        <p className="font-semibold text-sm mb-1">
+                      <div className="rounded-lg border border-[#323232] bg-[#1C1C1C] p-3 shadow-lg">
+                        <p className="font-semibold text-sm mb-1 text-[#E6E6E6]">
                           {payload[0].payload.name}
                         </p>
-                        <p className="text-sm text-muted-foreground">
-                          Votes: <span className="font-medium text-foreground">{payload[0].value}</span>
+                        <p className="text-sm text-[#A4A4A4]">
+                          Votes: <span className="font-medium text-[#E6E6E6]">{payload[0].value}</span>
                         </p>
-                        <p className="text-sm text-muted-foreground">
-                          Percentage: <span className="font-medium text-foreground">{payload[0].payload.percentage}%</span>
+                        <p className="text-sm text-[#A4A4A4]">
+                          Percentage: <span className="font-medium text-[#E6E6E6]">{payload[0].payload.percentage}%</span>
                         </p>
                       </div>
                     );
@@ -158,66 +200,46 @@ export function LiveResults({ options, totalVotes }: LiveResultsProps) {
                 data={chartData}
                 dataKey="votes"
                 nameKey="name"
-                label={({ payload, ...props }) => {
+                labelLine={{
+                  stroke: '#323232',
+                  strokeWidth: 1,
+                }}
+                label={({ cx, cy, midAngle, outerRadius, payload }) => {
+                  const RADIAN = Math.PI / 180;
+                  const radius = outerRadius + 30;
+                  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+                  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+                  
                   return (
                     <text
-                      cx={props.cx}
-                      cy={props.cy}
-                      x={props.x}
-                      y={props.y}
-                      textAnchor={props.textAnchor}
-                      dominantBaseline={props.dominantBaseline}
-                      fill="hsl(var(--foreground))"
+                      x={x}
+                      y={y}
+                      fill="#E6E6E6"
+                      textAnchor={x > cx ? 'start' : 'end'}
+                      dominantBaseline="central"
                       className="text-xs font-medium"
                     >
-                      {payload.percentage}%
+                      <tspan x={x} dy="-0.6em">{payload.name}</tspan>
+                      <tspan x={x} dy="1.2em" className="font-bold">{payload.percentage}%</tspan>
                     </text>
                   );
                 }}
               />
             </PieChart>
           </ChartContainer>
+          </div>
         </TabsContent>
       </Tabs>
 
-      {/* Legend with Progress Bars */}
-      <div className="space-y-3 mt-6">
-        {chartData.map((item, index) => (
-          <div key={index} className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <div className="flex items-center gap-2">
-                <div
-                  className="w-3 h-3 rounded-sm shrink-0"
-                  style={{ backgroundColor: item.fill }}
-                />
-                <span className="font-medium line-clamp-1">{item.name}</span>
-              </div>
-              <span className="text-muted-foreground font-medium shrink-0">
-                {item.votes} ({item.percentage}%)
-              </span>
-            </div>
-            <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
-              <div
-                className="h-2 rounded-full transition-all duration-500 ease-out"
-                style={{
-                  width: `${item.percentage}%`,
-                  backgroundColor: item.fill,
-                }}
-              />
-            </div>
-          </div>
-        ))}
-      </div>
-
       {/* Stats Summary */}
-      <div className="grid grid-cols-2 gap-4 pt-4 border-t">
-        <div className="text-center p-4 rounded-lg bg-muted/50">
-          <p className="text-2xl font-bold text-foreground">{totalVotes}</p>
-          <p className="text-sm text-muted-foreground">Total Votes</p>
+      <div className="grid grid-cols-2 gap-4 pt-4 border-t border-[#323232]">
+        <div className="text-center p-4 rounded-lg bg-[#1C1C1C] border border-[#323232]">
+          <p className="text-2xl font-bold text-[#E6E6E6]">{totalVotes}</p>
+          <p className="text-sm text-[#A4A4A4]">Total Votes</p>
         </div>
-        <div className="text-center p-4 rounded-lg bg-muted/50">
-          <p className="text-2xl font-bold text-foreground">{options.length}</p>
-          <p className="text-sm text-muted-foreground">Options</p>
+        <div className="text-center p-4 rounded-lg bg-[#1C1C1C] border border-[#323232]">
+          <p className="text-2xl font-bold text-[#E6E6E6]">{options.length}</p>
+          <p className="text-sm text-[#A4A4A4]">Options</p>
         </div>
       </div>
     </div>

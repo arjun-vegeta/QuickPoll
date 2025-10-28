@@ -13,13 +13,17 @@ export function useWebSocket(pollId: string) {
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
   const reconnectAttemptsRef = useRef(0);
   const isConnectingRef = useRef(false);
+  const shouldReconnectRef = useRef(true);
+  const pingIntervalRef = useRef<NodeJS.Timeout>();
 
   const connect = useCallback(() => {
-    if (!pollId || isConnectingRef.current) return;
+    if (!pollId || isConnectingRef.current || !shouldReconnectRef.current) return;
 
     // Close existing connection if any
-    if (wsRef.current && wsRef.current.readyState !== WebSocket.CLOSED) {
-      wsRef.current.close();
+    if (wsRef.current) {
+      if (wsRef.current.readyState === WebSocket.OPEN || wsRef.current.readyState === WebSocket.CONNECTING) {
+        return; // Already connected or connecting
+      }
     }
 
     isConnectingRef.current = true;
@@ -33,6 +37,16 @@ export function useWebSocket(pollId: string) {
         setIsConnected(true);
         reconnectAttemptsRef.current = 0;
         isConnectingRef.current = false;
+
+        // Send ping every 30 seconds to keep connection alive
+        if (pingIntervalRef.current) {
+          clearInterval(pingIntervalRef.current);
+        }
+        pingIntervalRef.current = setInterval(() => {
+          if (ws.readyState === WebSocket.OPEN) {
+            ws.send('ping');
+          }
+        }, 30000);
       };
 
       ws.onmessage = (event) => {
@@ -92,59 +106,65 @@ export function useWebSocket(pollId: string) {
         }
       };
 
-      ws.onclose = () => {
+      ws.onclose = (event) => {
         console.log('WebSocket disconnected');
         setIsConnected(false);
         isConnectingRef.current = false;
 
-        // Exponential backoff reconnection
-        const delay = Math.min(1000 * Math.pow(2, reconnectAttemptsRef.current), 30000);
-        reconnectAttemptsRef.current += 1;
+        if (pingIntervalRef.current) {
+          clearInterval(pingIntervalRef.current);
+        }
 
-        reconnectTimeoutRef.current = setTimeout(() => {
-          console.log(`Reconnecting... (attempt ${reconnectAttemptsRef.current})`);
-          connect();
-        }, delay);
+        // Only reconnect if we should (not during cleanup)
+        if (shouldReconnectRef.current && reconnectAttemptsRef.current < 10) {
+          const delay = Math.min(1000 * Math.pow(2, reconnectAttemptsRef.current), 30000);
+          reconnectAttemptsRef.current += 1;
+
+          reconnectTimeoutRef.current = setTimeout(() => {
+            console.log(`Reconnecting... (attempt ${reconnectAttemptsRef.current})`);
+            connect();
+          }, delay);
+        }
       };
 
       ws.onerror = (error) => {
         console.error('WebSocket error:', error);
         isConnectingRef.current = false;
       };
-
-      // Send ping every 30 seconds to keep connection alive
-      const pingInterval = setInterval(() => {
-        if (ws.readyState === WebSocket.OPEN) {
-          ws.send('ping');
-        }
-      }, 30000);
-
-      return () => {
-        clearInterval(pingInterval);
-      };
     } catch (error) {
       console.error('Error creating WebSocket:', error);
+      isConnectingRef.current = false;
     }
   }, [pollId]);
 
   useEffect(() => {
-    // Prevent duplicate connections
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      return;
+    shouldReconnectRef.current = true;
+    
+    // Only connect if not already connected
+    if (!wsRef.current || wsRef.current.readyState === WebSocket.CLOSED) {
+      connect();
     }
 
-    connect();
-
     return () => {
+      // Prevent reconnection during cleanup
+      shouldReconnectRef.current = false;
+      
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
       }
+      
+      if (pingIntervalRef.current) {
+        clearInterval(pingIntervalRef.current);
+      }
+      
       if (wsRef.current) {
-        wsRef.current.close();
+        if (wsRef.current.readyState === WebSocket.OPEN || wsRef.current.readyState === WebSocket.CONNECTING) {
+          wsRef.current.close();
+        }
         wsRef.current = null;
       }
     };
-  }, [connect]);
+  }, [pollId]); // Only depend on pollId, not connect
 
   return { poll, isConnected, viewerCount };
 }

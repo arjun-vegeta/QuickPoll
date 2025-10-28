@@ -1,18 +1,18 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { authApi, saveAuth } from '@/lib/auth';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle } from 'lucide-react';
+} from "@/components/ui/dialog";
+import { authApi, saveAuth } from "@/lib/auth";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 interface AuthModalProps {
   open?: boolean;
@@ -22,15 +22,15 @@ interface AuthModalProps {
 
 export function AuthModal({ open = true, onClose, onSuccess }: AuthModalProps) {
   const [isLogin, setIsLogin] = useState(true);
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setIsLoading(true);
 
     try {
@@ -39,7 +39,7 @@ export function AuthModal({ open = true, onClose, onSuccess }: AuthModalProps) {
         authData = await authApi.login(email, password);
       } else {
         if (!username.trim()) {
-          setError('Username is required');
+          setError("Username is required");
           setIsLoading(false);
           return;
         }
@@ -49,7 +49,7 @@ export function AuthModal({ open = true, onClose, onSuccess }: AuthModalProps) {
       saveAuth(authData);
       onSuccess();
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Authentication failed');
+      setError(err.response?.data?.detail || "Authentication failed");
     } finally {
       setIsLoading(false);
     }
@@ -57,20 +57,22 @@ export function AuthModal({ open = true, onClose, onSuccess }: AuthModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md bg-[#1C1C1C] border-[#323232] border-[1.5px]">
         <DialogHeader>
-          <DialogTitle>{isLogin ? 'Welcome back' : 'Create an account'}</DialogTitle>
-          <DialogDescription>
-            {isLogin 
-              ? 'Enter your credentials to access your account' 
-              : 'Sign up to create and manage polls'}
+          <DialogTitle className="text-[#E6E6E6] text-2xl">
+            {isLogin ? "Welcome back" : "Create an account"}
+          </DialogTitle>
+          <DialogDescription className="text-[#A4A4A4]">
+            {isLogin
+              ? "Enter your credentials to login and manage polls"
+              : "Sign up to create and manage polls"}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {!isLogin && (
             <div className="space-y-2">
-              <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              <label className="text-sm font-medium leading-none text-[#E6E6E6]">
                 Username
               </label>
               <Input
@@ -80,12 +82,13 @@ export function AuthModal({ open = true, onClose, onSuccess }: AuthModalProps) {
                 required={!isLogin}
                 minLength={3}
                 maxLength={50}
+                className="bg-black border-[#323232] border-[1.5px] text-[#E6E6E6] placeholder:text-[#A4A4A4] focus-visible:border-white focus-visible:ring-0 focus-visible:ring-offset-0"
               />
             </div>
           )}
 
           <div className="space-y-2">
-            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+            <label className="text-sm font-medium leading-none text-[#E6E6E6]">
               Email
             </label>
             <Input
@@ -94,11 +97,12 @@ export function AuthModal({ open = true, onClose, onSuccess }: AuthModalProps) {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter email"
               required
+              className="bg-black border-[#323232] border-[1.5px] text-[#E6E6E6] placeholder:text-[#A4A4A4] focus-visible:border-white focus-visible:ring-0 focus-visible:ring-offset-0"
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+            <label className="text-sm font-medium leading-none text-[#E6E6E6]">
               Password
             </label>
             <Input
@@ -108,45 +112,53 @@ export function AuthModal({ open = true, onClose, onSuccess }: AuthModalProps) {
               placeholder="Enter password"
               required
               minLength={6}
+              className="bg-black border-[#323232] border-[1.5px] text-[#E6E6E6] placeholder:text-[#A4A4A4] focus-visible:border-white focus-visible:ring-0 focus-visible:ring-offset-0"
             />
           </div>
 
           {error && (
-            <Alert variant="destructive">
+            <Alert
+              variant="destructive"
+              className="bg-red-500/10 border-red-500 text-red-500"
+            >
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
 
-          <Button type="submit" disabled={isLoading} className="w-full">
-            {isLoading ? 'Please wait...' : isLogin ? 'Login' : 'Sign Up'}
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="w-full bg-[#34CC41] text-black hover:bg-[#2eb838] font-medium"
+          >
+            {isLoading ? "Please wait..." : isLogin ? "Login" : "Sign Up"}
           </Button>
 
           <div className="text-center text-sm">
             {isLogin ? (
-              <p className="text-muted-foreground">
-                Don't have an account?{' '}
+              <p className="text-[#A4A4A4]">
+                Don't have an account?{" "}
                 <button
                   type="button"
                   onClick={() => {
                     setIsLogin(false);
-                    setError('');
+                    setError("");
                   }}
-                  className="text-primary hover:underline font-medium"
+                  className="text-[#34CC41] hover:text-[#2eb838] hover:underline font-medium"
                 >
                   Sign up
                 </button>
               </p>
             ) : (
-              <p className="text-muted-foreground">
-                Already have an account?{' '}
+              <p className="text-[#A4A4A4]">
+                Already have an account?{" "}
                 <button
                   type="button"
                   onClick={() => {
                     setIsLogin(true);
-                    setError('');
+                    setError("");
                   }}
-                  className="text-primary hover:underline font-medium"
+                  className="text-[#34CC41] hover:text-[#2eb838] hover:underline font-medium"
                 >
                   Login
                 </button>

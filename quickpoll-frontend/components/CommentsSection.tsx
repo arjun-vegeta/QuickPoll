@@ -8,6 +8,16 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { commentsApi } from '@/lib/api';
 import { isAuthenticated, getUser } from '@/lib/auth';
 import { MessageSquare, Trash2, User } from 'lucide-react';
@@ -24,6 +34,9 @@ export function CommentsSection({ pollId, onNewComment }: CommentsSectionProps) 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [postAnonymously, setPostAnonymously] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [commentToDelete, setCommentToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const user = isAuthenticated() ? getUser() : null;
 
   useEffect(() => {
@@ -69,15 +82,25 @@ export function CommentsSection({ pollId, onNewComment }: CommentsSectionProps) 
     }
   };
 
-  const handleDelete = async (commentId: string) => {
-    if (!confirm('Delete this comment?')) return;
+  const handleDeleteClick = (commentId: string) => {
+    setCommentToDelete(commentId);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!commentToDelete) return;
 
     try {
-      await commentsApi.delete(commentId);
-      setComments(comments.filter(c => c.id !== commentId));
+      setIsDeleting(true);
+      await commentsApi.delete(commentToDelete);
+      setComments(comments.filter(c => c.id !== commentToDelete));
+      setDeleteDialogOpen(false);
+      setCommentToDelete(null);
     } catch (error) {
       console.error('Error deleting comment:', error);
       alert('Failed to delete comment');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -109,99 +132,102 @@ export function CommentsSection({ pollId, onNewComment }: CommentsSectionProps) 
   };
 
   return (
-    <Card className="border-slate-200 shadow-lg bg-white/50 backdrop-blur-sm">
-      <CardHeader className="space-y-1">
-        <CardTitle className="flex items-center gap-2 text-xl">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
-            <MessageSquare className="h-4 w-4 text-white" />
+    <>
+    <Card className="border-[#323232] border-[1.5px] shadow-lg shadow-black/20 bg-[#1C1C1C] h-full flex flex-col">
+      <CardHeader className="space-y-1 pb-4">
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <div className="w-7 h-7 rounded-lg bg-[#34CC41]/10 border border-[#34CC41] flex items-center justify-center">
+            <MessageSquare className="h-4 w-4 text-[#34CC41]" />
           </div>
-          Comments
-          <span className="text-sm font-normal text-slate-500">({comments.length})</span>
+          <span className="text-[#E6E6E6]">Comments</span>
+          <span className="text-sm font-normal text-[#A4A4A4]">({comments.length})</span>
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-1 flex flex-col overflow-hidden">
         {/* Comment Form */}
-        <form onSubmit={handleSubmit} className="space-y-3 mb-6 p-4 rounded-xl bg-slate-50/50 border border-slate-200">
+        <form onSubmit={handleSubmit} className="space-y-3 mb-4 p-3 rounded-lg bg-black border border-[#323232]">
           <Textarea
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
             placeholder={user ? "Share your thoughts..." : "Post as Anonymous User"}
             maxLength={1000}
-            rows={3}
-            className="resize-none border-slate-200 focus:border-blue-300 bg-white"
+            rows={2}
+            className="resize-none border-[#323232] border-[1.5px] focus-visible:border-white focus-visible:ring-0 focus-visible:ring-offset-0 bg-[#1C1C1C] text-[#E6E6E6] placeholder:text-[#A4A4A4] text-sm"
           />
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              {user && (
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="anonymous"
-                    checked={postAnonymously}
-                    onCheckedChange={(checked) => setPostAnonymously(checked as boolean)}
-                  />
-                  <label
-                    htmlFor="anonymous"
-                    className="text-sm font-medium leading-none cursor-pointer text-slate-700"
-                  >
-                    Post anonymously
-                  </label>
-                </div>
-              )}
-              <span className="text-xs text-slate-500 font-medium">
+          <div className="flex flex-col gap-2">
+            {user && (
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="anonymous"
+                  checked={postAnonymously}
+                  onCheckedChange={(checked) => setPostAnonymously(checked as boolean)}
+                  className="border-[#323232] data-[state=checked]:bg-[#34CC41] data-[state=checked]:border-[#34CC41]"
+                />
+                <label
+                  htmlFor="anonymous"
+                  className="text-xs font-medium leading-none cursor-pointer text-[#E6E6E6]"
+                >
+                  Post anonymously
+                </label>
+              </div>
+            )}
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-[#A4A4A4] font-medium">
                 {user 
-                  ? (postAnonymously ? 'as Anonymous' : `as ${user.username}`)
-                  : 'as Anonymous'
+                  ? (postAnonymously ? 'Post as Anonymous' : `Post as ${user.username}`)
+                  : 'Post as Anonymous'
                 }
               </span>
+              <Button 
+                type="submit" 
+                disabled={isSubmitting || !newComment.trim()}
+                size="sm"
+                className="bg-[#34CC41] text-black hover:bg-[#2eb838] transition-all h-8"
+              >
+                {isSubmitting ? 'Posting...' : 'Post'}
+              </Button>
             </div>
-            <Button 
-              type="submit" 
-              disabled={isSubmitting || !newComment.trim()}
-              className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:shadow-lg transition-all"
-            >
-              {isSubmitting ? 'Posting...' : 'Post'}
-            </Button>
           </div>
         </form>
 
-        <Separator className="my-6 bg-slate-200" />
+        <Separator className="my-4 bg-[#323232]" />
 
         {/* Comments List */}
         {loading ? (
-          <div className="text-center py-8 text-muted-foreground">
+          <div className="text-center py-8">
             <div className="animate-pulse space-y-4">
-              <div className="h-16 bg-muted rounded"></div>
-              <div className="h-16 bg-muted rounded"></div>
-              <div className="h-16 bg-muted rounded"></div>
+              <div className="h-16 bg-[#1C1C1C] border border-[#323232] rounded"></div>
+              <div className="h-16 bg-[#1C1C1C] border border-[#323232] rounded"></div>
+              <div className="h-16 bg-[#1C1C1C] border border-[#323232] rounded"></div>
             </div>
           </div>
         ) : comments.length === 0 ? (
           <div className="text-center py-12">
-            <MessageSquare className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-            <p className="text-muted-foreground">No comments yet. Be the first to comment!</p>
+            <MessageSquare className="h-12 w-12 mx-auto text-[#A4A4A4] mb-3" />
+            <p className="text-[#A4A4A4]">No comments yet. Be the first to comment!</p>
           </div>
         ) : (
-          <ScrollArea className="h-[400px] pr-4">
-            <div className="space-y-6">
+          <ScrollArea className="flex-1 pr-3 xl:max-h-[calc(100vh-400px)]">
+            <div className="space-y-4">
               {comments.map((comment, index) => (
                 <div key={comment.id}>
-                  <div className="flex items-start gap-3">
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback className="bg-primary/10 text-primary">
+                  <div className="flex items-start gap-2">
+                    <Avatar className="h-7 w-7 border border-[#323232] shrink-0">
+                      <AvatarFallback className="bg-[#34CC41]/10 text-[#34CC41] text-xs">
                         {comment.username === 'Anonymous User' ? (
-                          <User className="h-4 w-4" />
+                          <User className="h-3 w-3" />
                         ) : (
                           comment.username.charAt(0).toUpperCase()
                         )}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="flex-1 space-y-1">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold text-sm">
+                    <div className="flex-1 min-w-0 space-y-1">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex flex-col min-w-0">
+                          <span className="font-semibold text-xs text-[#E6E6E6] truncate">
                             {comment.username}
                           </span>
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-xs text-[#A4A4A4]">
                             {formatDate(comment.created_at)}
                           </span>
                         </div>
@@ -209,19 +235,19 @@ export function CommentsSection({ pollId, onNewComment }: CommentsSectionProps) 
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleDelete(comment.id)}
-                            className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                            onClick={() => handleDeleteClick(comment.id)}
+                            className="h-6 w-6 p-0 text-red-500 hover:text-red-400 hover:bg-red-500/10 shrink-0"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-3 w-3" />
                           </Button>
                         )}
                       </div>
-                      <p className="text-sm text-foreground leading-relaxed">
+                      <p className="text-xs text-[#E6E6E6] leading-relaxed break-words">
                         {comment.comment_text}
                       </p>
                     </div>
                   </div>
-                  {index < comments.length - 1 && <Separator className="mt-6" />}
+                  {index < comments.length - 1 && <Separator className="mt-4 bg-[#323232]" />}
                 </div>
               ))}
             </div>
@@ -229,5 +255,32 @@ export function CommentsSection({ pollId, onNewComment }: CommentsSectionProps) 
         )}
       </CardContent>
     </Card>
+
+    <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+      <AlertDialogContent className="bg-[#1C1C1C] border-[#323232] border-[1.5px]">
+        <AlertDialogHeader>
+          <AlertDialogTitle className="text-[#E6E6E6]">Delete Comment</AlertDialogTitle>
+          <AlertDialogDescription className="text-[#A4A4A4]">
+            Are you sure you want to delete this comment? This action cannot be undone.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel 
+            className="bg-black border-[#323232] text-[#E6E6E6] hover:bg-[#323232]"
+            disabled={isDeleting}
+          >
+            Cancel
+          </AlertDialogCancel>
+          <AlertDialogAction
+            onClick={confirmDelete}
+            disabled={isDeleting}
+            className="bg-red-500 text-white hover:bg-red-600"
+          >
+            {isDeleting ? 'Deleting...' : 'Delete'}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  </>
   );
 }

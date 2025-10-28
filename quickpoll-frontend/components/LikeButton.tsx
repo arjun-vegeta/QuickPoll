@@ -64,13 +64,17 @@ export function LikeButton({ pollId, totalLikes }: LikeButtonProps) {
             onClick={handleLike}
             disabled={isLoading}
             variant={liked ? 'default' : 'outline'}
-            className="gap-2"
+            className={`gap-2 border-[1.5px] transition-all ${
+              liked 
+                ? 'bg-[#34CC41] border-[#34CC41] text-black hover:bg-[#2eb838]' 
+                : 'bg-black border-[#323232] text-[#E6E6E6] hover:border-[#34CC41] hover:text-[#34CC41]'
+            }`}
           >
             <Heart className={`h-4 w-4 ${liked ? 'fill-current' : ''}`} />
-            <span>{likes}</span>
+            <span className="font-medium">{likes}</span>
           </Button>
         </TooltipTrigger>
-        <TooltipContent>
+        <TooltipContent className="bg-[#1C1C1C] border-[#323232] text-[#E6E6E6]">
           <p>{liked ? 'Unlike this poll' : 'Like this poll'}</p>
         </TooltipContent>
       </Tooltip>

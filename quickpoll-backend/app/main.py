@@ -54,8 +54,14 @@ async def websocket_endpoint(websocket: WebSocket, poll_id: str, db: Session = D
                         "id": str(poll.id),
                         "title": poll.title,
                         "description": poll.description,
+                        "category": poll.category,
+                        "created_at": poll.created_at.isoformat() if poll.created_at else None,
+                        "expires_at": poll.expires_at.isoformat() if poll.expires_at else None,
+                        "is_active": poll.is_active,
                         "total_votes": poll.total_votes,
                         "total_likes": poll.total_likes,
+                        "total_comments": poll.total_comments,
+                        "creator_id": str(poll.creator_id),
                         "options": [
                             {
                                 "id": str(opt.id),

@@ -35,6 +35,7 @@ export const pollsApi = {
   create: async (pollData: {
     title: string;
     description?: string;
+    category?: string;
     options: { option_text: string; position: number }[];
   }): Promise<Poll> => {
     const response = await api.post("/polls/", pollData);

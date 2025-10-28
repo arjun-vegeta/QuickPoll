@@ -6,6 +6,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { IBM_Plex_Mono } from "next/font/google";
 import Marquee from "react-fast-marquee";
+import api from "@/lib/api";
+import { Footer } from "@/components/Footer";
 
 const ibmPlexMono = IBM_Plex_Mono({
   weight: ["700"],
@@ -17,21 +19,6 @@ interface TrendingPoll {
   id: string;
   title: string;
 }
-
-const TRENDING_POLLS: TrendingPoll[] = [
-  { id: "1", title: "Will AI replace developers?" },
-  { id: "2", title: "Is RCB the best IPL team?" },
-  { id: "3", title: "Should Lyzr AI hire Arjun as a Full-Stack Developer?" },
-  { id: "4", title: "Is Quick Poll the best polling platform?" },
-  { id: "5", title: "Claude or Gemini, which is the best?" },
-  { id: "6", title: "Can Lyzr AI beat salesforce's Agentforce platform" },
-  { id: "7", title: "Is TypeScript better than JavaScript?" },
-  { id: "8", title: "Should remote work be the default?" },
-  { id: "9", title: "Is Next.js the best React framework?" },
-  { id: "10", title: "Will quantum computing change everything?" },
-  { id: "11", title: "Is Python still relevant in 2024?" },
-  { id: "12", title: "Should startups focus on AI first?" },
-];
 
 // Helper component for a single poll card
 const PollCard = ({
@@ -64,30 +51,56 @@ const PollCard = ({
 
 export function HeroSection() {
   const [mounted, setMounted] = useState(false);
+  const [trendingPolls, setTrendingPolls] = useState<TrendingPoll[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setMounted(true);
+
+    // Fetch trending polls from backend
+    const fetchTrendingPolls = async () => {
+      try {
+        const params = new URLSearchParams();
+        params.append("sort_by", "votes");
+        const response = await api.get(`/polls/?${params.toString()}`);
+        const polls = response.data.slice(0, 12).map((poll: any) => ({
+          id: poll.id,
+          title: poll.title,
+        }));
+        setTrendingPolls(polls);
+      } catch (error) {
+        console.error("Error fetching trending polls:", error);
+        // Fallback to empty array if fetch fails
+        setTrendingPolls([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTrendingPolls();
   }, []);
 
   const createGridPattern = () => {
+    if (trendingPolls.length === 0) return [];
+
     const pattern = [];
-    for (let i = 0; i < TRENDING_POLLS.length; i += 3) {
+    for (let i = 0; i < trendingPolls.length; i += 3) {
       pattern.push({
         type: "column",
         polls: [
-          { poll: TRENDING_POLLS[i % TRENDING_POLLS.length], size: "small" },
+          { poll: trendingPolls[i % trendingPolls.length], size: "small" },
           {
-            poll: TRENDING_POLLS[(i + 1) % TRENDING_POLLS.length],
+            poll: trendingPolls[(i + 1) % trendingPolls.length],
             size: "small",
           },
         ],
       });
-      if (i + 2 < TRENDING_POLLS.length) {
+      if (i + 2 < trendingPolls.length) {
         pattern.push({
           type: "column",
           polls: [
             {
-              poll: TRENDING_POLLS[(i + 2) % TRENDING_POLLS.length],
+              poll: trendingPolls[(i + 2) % trendingPolls.length],
               size: "large",
             },
           ],
@@ -100,7 +113,7 @@ export function HeroSection() {
   const gridPattern = createGridPattern();
   const duplicatedPattern = [...gridPattern, ...gridPattern, ...gridPattern];
 
-  if (!mounted) {
+  if (!mounted || loading) {
     return <div className="w-screen h-screen bg-black" />;
   }
 
@@ -172,7 +185,7 @@ export function HeroSection() {
       </div>
 
       {/* Infinite Marquee Grid Section */}
-      <div className="relative w-full z-0 overflow-hidden pt-10 pb-32">
+      <div className="relative w-full z-0 overflow-hidden pt-10 pb-20">
         {/* Scrolling Grid Container */}
         <Marquee speed={160} gradient={false} pauseOnHover>
           {duplicatedPattern.map((column, columnIndex) => (
@@ -202,6 +215,9 @@ export function HeroSection() {
           ))}
         </Marquee>
       </div>
+
+      {/* Footer */}
+      <Footer transparent />
     </div>
   );
 }

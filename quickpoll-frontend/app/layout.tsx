@@ -1,17 +1,26 @@
 "use client";
 
-import { IBM_Plex_Sans } from "next/font/google";
+import { IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import { useState, useEffect } from "react";
 import { getUser, logout, isAuthenticated } from "@/lib/auth";
 import { LogOut, User as UserIcon } from "lucide-react";
 import { AuthModal } from "@/components/AuthModal";
+import { Footer } from "@/components/Footer";
 import { usePathname } from "next/navigation";
+import Link from "next/link";
 
 const ibmPlexSans = IBM_Plex_Sans({
   weight: ["400", "500", "600", "700"],
   subsets: ["latin"],
   display: "swap",
+});
+
+const ibmPlexMono = IBM_Plex_Mono({
+  weight: ["400", "500", "600", "700"],
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-ibm-plex-mono",
 });
 
 export default function RootLayout({
@@ -48,14 +57,16 @@ export default function RootLayout({
   if (!mounted) {
     return (
       <html lang="en" className="scroll-smooth">
-        <body className={ibmPlexSans.className}>{children}</body>
+        <body className={`${ibmPlexSans.className} ${ibmPlexMono.variable}`}>
+          {children}
+        </body>
       </html>
     );
   }
 
   return (
     <html lang="en" className="scroll-smooth">
-      <body className={ibmPlexSans.className}>
+      <body className={`${ibmPlexSans.className} ${ibmPlexMono.variable}`}>
         {isHomePage ? (
           // Full-screen layout for home page
           <>{children}</>
@@ -66,14 +77,13 @@ export default function RootLayout({
             <nav className="sticky top-0 z-50 backdrop-blur-lg bg-[#1C1C1C]/95 border-b border-[#323232]">
               <div className="container mx-auto px-6 py-4">
                 <div className="flex items-center justify-between">
-                  <a href="/" className="flex items-center gap-2 group">
-                    <div className="w-8 h-8 rounded-lg bg-[#34CC41] flex items-center justify-center">
-                      <span className="text-black font-bold text-sm">Q</span>
-                    </div>
-                    <span className="text-xl font-semibold text-[#E6E6E6]">
+                  <Link href="/" className="flex items-center gap-2 group">
+                    <span
+                      className={`text-xl font-semibold text-[#34CC41] ${ibmPlexMono.className}`}
+                    >
                       QuickPoll
                     </span>
-                  </a>
+                  </Link>
                   <div className="flex items-center gap-3">
                     {user ? (
                       <>
@@ -81,12 +91,12 @@ export default function RootLayout({
                           <UserIcon className="h-3.5 w-3.5" />
                           <span className="font-medium">{user.username}</span>
                         </div>
-                        <a
+                        <Link
                           href="/create"
                           className="px-4 py-2 bg-[#34CC41] text-black rounded-lg hover:bg-[#2eb838] hover:scale-105 transition-all duration-200 font-medium text-sm"
                         >
                           Create Poll
-                        </a>
+                        </Link>
                         <button
                           onClick={handleLogout}
                           className="px-3 py-2 text-[#A4A4A4] hover:text-[#E6E6E6] hover:bg-[#323232] rounded-lg transition-colors flex items-center gap-2 text-sm"
@@ -102,12 +112,12 @@ export default function RootLayout({
                         >
                           Login
                         </button>
-                        <a
+                        <Link
                           href="/create"
                           className="px-4 py-2 bg-[#34CC41] text-black rounded-lg hover:bg-[#2eb838] hover:scale-105 transition-all duration-200 font-medium text-sm"
                         >
                           Create Poll
-                        </a>
+                        </Link>
                       </>
                     )}
                   </div>
@@ -117,6 +127,9 @@ export default function RootLayout({
 
             {/* Main Content */}
             <main className="w-full">{children}</main>
+
+            {/* Footer */}
+            <Footer />
 
             <AuthModal
               open={showAuthModal}

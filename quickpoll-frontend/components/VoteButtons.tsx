@@ -42,7 +42,7 @@ export function VoteButtons({ pollId, options, userVote, onVoteSuccess }: VoteBu
   };
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       {options.sort((a, b) => a.position - b.position).map((option) => {
         const isSelected = selectedOption === option.id;
         
@@ -52,10 +52,14 @@ export function VoteButtons({ pollId, options, userVote, onVoteSuccess }: VoteBu
             onClick={() => handleVote(option.id)}
             disabled={isVoting}
             variant={isSelected ? 'default' : 'outline'}
-            className="w-full justify-between text-left h-auto py-3"
+            className={`w-full justify-between text-left h-auto py-4 px-5 border-[1.5px] transition-all ${
+              isSelected 
+                ? 'bg-[#34CC41] border-[#34CC41] text-black hover:bg-[#2eb838] hover:border-[#2eb838]' 
+                : 'bg-black border-[#323232] text-[#E6E6E6] hover:border-[#34CC41] hover:bg-[#34CC41]/10 hover:text-white'
+            }`}
           >
-            <span>{option.option_text}</span>
-            {isSelected && <Check className="h-4 w-4" />}
+            <span className="font-medium">{option.option_text}</span>
+            {isSelected && <Check className="h-5 w-5" />}
           </Button>
         );
       })}
